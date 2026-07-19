@@ -78,40 +78,56 @@ export async function forgotPassword(formData: FormData) {
   const email = formData.get('email') as string
 
   // DEV BYPASS: Generate recovery link and print to console instead of sending email
-  if (process.env.NODE_ENV === 'development' && process.env.AUTH_DEV_BYPASS === 'true') {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.AUTH_DEV_BYPASS === 'true'
+  ) {
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const adminClient = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY,
-        { auth: { autoRefreshToken: false, persistSession: false } }
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
       )
-      
+
       const { data } = await adminClient.auth.admin.generateLink({
         type: 'recovery',
-        email: email
+        email,
       })
-      
+
       if (data?.properties?.action_link) {
         console.log('\n\n======================================================')
         console.log('🚧 DEV BYPASS RECOVERY LINK 🚧')
         console.log(data.properties.action_link)
         console.log('======================================================\n\n')
-        return { success: true, message: 'DEV BYPASS: Check your terminal console for the recovery link.' }
+
+        return {
+          success: true,
+          message: 'DEV BYPASS: Check your terminal console for the recovery link.',
+        }
       }
     }
   }
 
-  // Use the production URL as fallback instead of localhost
+  // Production password recovery through Supabase + Resend
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://learnlens-v2.vercel.app'}/student/update-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/student/update-password`,
   })
 
   if (error) {
     if (isRateLimit(error)) {
       return { error: RATE_LIMIT_MESSAGE }
     }
+
     return { error: error.message }
   }
 
-  return { success: true, message: 'Check your inbox for the password reset link.' }
+  return {
+    success: true,
+    message: 'Check your inbox for the password reset link.',
+  }
 }
