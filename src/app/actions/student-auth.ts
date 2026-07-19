@@ -53,10 +53,9 @@ export async function forgotPassword(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
 
-  // Note: For a robust app, use an env variable for NEXT_PUBLIC_SITE_URL
-  // or pass the origin from the client.
+  // Use the production URL as fallback instead of localhost
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/student/update-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://learnlens-v2.vercel.app'}/student/update-password`,
   })
 
   if (error) {

@@ -34,9 +34,10 @@ export default async function StudentDashboard() {
           <p className="text-muted-foreground">{profile?.grade || 'Class 10'} • {profile?.board || 'CBSE'}</p>
         </div>
         <Link href="/student/analyze" className="w-full md:w-auto shrink-0">
-          <Button size="lg" className="w-full text-lg h-14 font-semibold tracking-wide rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group">
-            <span className="mr-2 text-2xl group-hover:scale-110 transition-transform">✨</span>
-            Analyze Answer Sheet
+          <Button size="lg" className="relative w-full text-lg h-14 font-semibold tracking-wide rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+            <span className="relative z-10 mr-2 text-2xl group-hover:scale-110 transition-transform">✨</span>
+            <span className="relative z-10">Analyze Answer Sheet</span>
           </Button>
         </Link>
       </div>
