@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState('')
@@ -14,11 +14,22 @@ export default function UpdatePassword() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const code = searchParams.get('code')
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+
+  useEffect(() => {
+    if (code) {
+      // Exchange the PKCE code for an actual auth session
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setError('Invalid or expired reset link. Please request a new one.')
+      })
+    }
+  }, [code, supabase.auth])
 
   const handleUpdate = async () => {
     setLoading(true)
