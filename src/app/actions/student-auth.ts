@@ -3,6 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+
+const RATE_LIMIT_MESSAGE = "We've reached the temporary email sending limit. Please wait a few minutes and try again."
+
+function isRateLimit(error: any) {
+  const msg = error?.message?.toLowerCase() || ''
+  return msg.includes('rate limit') || msg.includes('too many requests') || error?.status === 429
+}
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -32,10 +40,26 @@ export async function signup(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  const { data: signUpData, error } = await supabase.auth.signUp(data)
 
   if (error) {
+    if (isRateLimit(error)) {
+      return { error: RATE_LIMIT_MESSAGE }
+    }
     return { error: error.message }
+  }
+
+  // DEV BYPASS: Auto-confirm user so testers don't need to wait for emails locally
+  if (process.env.NODE_ENV === 'development' && process.env.AUTH_DEV_BYPASS === 'true' && signUpData?.user) {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+      await adminClient.auth.admin.updateUserById(signUpData.user.id, { email_confirm: true })
+      return { success: true, message: 'DEV BYPASS: Account auto-confirmed. You can log in immediately.' }
+    }
   }
 
   // If email confirmation is required, the user will be prompted on the frontend.
@@ -53,12 +77,39 @@ export async function forgotPassword(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
 
+  // DEV BYPASS: Generate recovery link and print to console instead of sending email
+  if (process.env.NODE_ENV === 'development' && process.env.AUTH_DEV_BYPASS === 'true') {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const adminClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+      
+      const { data } = await adminClient.auth.admin.generateLink({
+        type: 'recovery',
+        email: email
+      })
+      
+      if (data?.properties?.action_link) {
+        console.log('\n\n======================================================')
+        console.log('🚧 DEV BYPASS RECOVERY LINK 🚧')
+        console.log(data.properties.action_link)
+        console.log('======================================================\n\n')
+        return { success: true, message: 'DEV BYPASS: Check your terminal console for the recovery link.' }
+      }
+    }
+  }
+
   // Use the production URL as fallback instead of localhost
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://learnlens-v2.vercel.app'}/student/update-password`,
   })
 
   if (error) {
+    if (isRateLimit(error)) {
+      return { error: RATE_LIMIT_MESSAGE }
+    }
     return { error: error.message }
   }
 
