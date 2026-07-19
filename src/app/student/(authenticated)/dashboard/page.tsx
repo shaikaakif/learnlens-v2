@@ -1,32 +1,44 @@
-import { DEMO_STUDENT_ID } from '@/lib/constants';
 import { db } from '@/lib/db';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { getSupabaseServerClient } from '@/lib/db/supabase';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export const revalidate = 0; // Ensure dashboard always fetches fresh data
 
 export default async function StudentDashboard() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    redirect('/student/login');
+  }
   
   const { data: analyses, error } = await supabase
     .from('analyses')
     .select('id, created_at, subject_detected, score_obtained, score_total, analysis_data')
-    .eq('student_id', DEMO_STUDENT_ID)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   const latestAnalysis = analyses && analyses.length > 0 ? analyses[0] : null;
 
-  const profile = await db.getProfile(DEMO_STUDENT_ID);
+  // Fetch profile for the current authenticated user automatically
+  const profile = await db.getProfile();
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-primary/5 p-6 rounded-2xl border border-primary/10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Welcome back, {profile?.full_name || 'Student'}</h1>
           <p className="text-muted-foreground">{profile?.grade || 'Class 10'} • {profile?.board || 'CBSE'}</p>
         </div>
+        <Link href="/student/analyze" className="w-full md:w-auto shrink-0">
+          <Button size="lg" className="w-full text-lg h-14 font-semibold tracking-wide rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group">
+            <span className="mr-2 text-2xl group-hover:scale-110 transition-transform">✨</span>
+            Analyze Answer Sheet
+          </Button>
+        </Link>
       </div>
 
       {!latestAnalysis ? (

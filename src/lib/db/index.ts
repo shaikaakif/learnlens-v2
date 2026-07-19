@@ -1,5 +1,5 @@
 import { LearningMRI, Student } from '@/types';
-import { getSupabaseServerClient } from './supabase';
+import { createClient } from '@/lib/supabase/server';
 
 export interface AnalysisMetadata {
   model_used: string;
@@ -7,12 +7,20 @@ export interface AnalysisMetadata {
 }
 
 export const db = {
-  async getProfile(id: string): Promise<Student | null> {
-    const supabase = getSupabaseServerClient();
+  async getProfile(id?: string): Promise<Student | null> {
+    const supabase = await createClient();
+    
+    // Fallback to currently authenticated user if no ID is passed
+    let targetId = id;
+    if (!targetId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      targetId = user.id;
+    }
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', id)
+      .eq('id', targetId)
       .single();
 
     if (error) {
@@ -24,13 +32,17 @@ export const db = {
   },
 
   async saveProfile(profile: Student): Promise<void> {
-    const supabase = getSupabaseServerClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized to save profile");
     
     // Upsert the profile
     const { error } = await supabase
       .from('profiles')
       .upsert({
         ...profile,
+        id: user.id, // Enforce current user ID
+        user_id: user.id, // Populate foreign key
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
 
@@ -41,7 +53,9 @@ export const db = {
   },
 
   async saveAnalysis(mri: LearningMRI, metadata: AnalysisMetadata): Promise<void> {
-    const supabase = getSupabaseServerClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized to save analysis");
     
     // We expect mri.subjectDetected to be populated. If not, fallback.
     const subjectDetected = (mri as any).subjectDetected || 'Unknown';
@@ -50,7 +64,8 @@ export const db = {
       .from('analyses')
       .insert({
         id: mri.id,
-        student_id: mri.studentId,
+        student_id: user.id, // For legacy column
+        user_id: user.id,    // For new RLS column
         status: 'completed',
         subject_detected: subjectDetected,
         score_obtained: mri.score?.obtained?.toString() || (mri.officialScore ? mri.officialScore.split('/')[0] : null),
@@ -67,7 +82,7 @@ export const db = {
   },
 
   async getAnalysis(id: string): Promise<LearningMRI | null> {
-    const supabase = getSupabaseServerClient();
+    const supabase = await createClient();
     
     const { data, error } = await supabase
       .from('analyses')

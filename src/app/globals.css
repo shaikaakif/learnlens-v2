@@ -2,28 +2,28 @@
 
 :root {
   /* Warm ivory / off-white base */
-  --background: #fafaf5;
+  --background: #FAFBF7;
   
   /* Deep charcoal with subtle forest undertone */
   --foreground: #141a16;
   
-  /* Vibrant Pistachio / Emerald / Botanical green */
-  --primary: #5c9966;
+  /* Vibrant Emerald / Botanical green */
+  --primary: #10B981;
   --primary-foreground: #ffffff;
   
   /* Fresh mint accent */
-  --secondary: #e0f0e6;
-  --secondary-foreground: #1c3623;
+  --secondary: #D1FAE5;
+  --secondary-foreground: #064E3B;
   
   /* Frosted card surfaces */
   --card: #ffffff;
   --card-foreground: #141a16;
   
   --muted: #edf2ed;
-  --muted-foreground: #58665b;
+  --muted-foreground: #087F5B;
   
-  --border: #d4e0d7;
-  --input: #d4e0d7;
+  --border: #A7F3A0;
+  --input: #A7F3A0;
   
   /* Status colors */
   --success: #3b9356;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Camera, FileImage, X } from "lucide-react";
+import { Camera, FileImage, FileText, X } from "lucide-react";
 
 interface ImageSourceSheetProps {
   isOpen: boolean;
@@ -90,6 +90,27 @@ export function ImageSourceSheet({ isOpen, onClose, onSelectCamera, onSelectFile
               <div>
                 <p className="font-semibold text-foreground">Photos</p>
                 <p className="text-sm text-muted-foreground">Choose existing answer-sheet photos</p>
+              </div>
+            </button>
+          </div>
+          <div className="relative">
+            <input 
+              type="file" 
+              multiple 
+              accept="application/pdf" 
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              onChange={handleFileChange}
+              title="Upload PDF Document"
+            />
+            <button
+              className="flex items-center gap-4 p-4 min-h-[64px] bg-muted/50 hover:bg-muted border border-border rounded-2xl transition-colors text-left w-full relative z-0"
+            >
+              <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center shrink-0 border border-border/50">
+                <FileText className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Document (PDF)</p>
+                <p className="text-sm text-muted-foreground">Upload a scanned PDF file</p>
               </div>
             </button>
           </div>

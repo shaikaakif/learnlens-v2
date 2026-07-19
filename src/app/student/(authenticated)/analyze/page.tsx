@@ -6,7 +6,6 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UploadCloud, FileImage, AlertCircle, X, Trash2, BrainCircuit, Camera as CameraIcon, Plus } from 'lucide-react';
 import { AnalysisService } from '@/services/analysis';
-import { DEMO_STUDENT_ID } from '@/lib/constants';
 import { AnalysisProgressExperience } from '@/components/ui/analysis-progress-experience';
 import { ImageSourceSheet } from '@/components/student/image-source-sheet';
 import { AnswerSheetCamera } from '@/components/student/answer-sheet-camera';
@@ -97,7 +96,7 @@ export default function AnalyzePage() {
       setProcessState('uploading');
       setTimeout(() => setProcessState('analyzing'), 1500);
 
-      const analysisId = await analysisService.analyzeAssessment(DEMO_STUDENT_ID, files);
+      const analysisId = await analysisService.analyzeAssessment(files);
 
       setProcessState('validating');
       await new Promise(r => setTimeout(r, 800));
@@ -164,7 +163,7 @@ export default function AnalyzePage() {
                 <input 
                   type="file" 
                   multiple 
-                  accept="image/*" 
+                  accept="image/*,application/pdf" 
                   className="hidden"
                   onChange={handleFileChange}
                   ref={fileInputRef}
@@ -177,7 +176,7 @@ export default function AnalyzePage() {
                   </div>
                   <div>
                     <p className="text-lg font-medium text-foreground">Click or drag images here</p>
-                    <p className="text-sm text-muted-foreground mt-1">Supports JPG, PNG, WebP</p>
+                    <p className="text-sm text-muted-foreground mt-1">Supports JPG, PNG, WebP, PDF</p>
                   </div>
                 </div>
               </div>
@@ -258,7 +257,7 @@ export default function AnalyzePage() {
       <input 
         type="file" 
         multiple 
-        accept="image/*" 
+        accept="image/*,application/pdf" 
         className="hidden"
         onChange={handleFileChange}
         ref={fileInputRef}

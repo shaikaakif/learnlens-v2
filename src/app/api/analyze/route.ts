@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GeminiAnalysisProvider } from '@/services/analysis/gemini-analysis-provider';
+import { AnalysisPipelineRouter } from '@/services/analysis/analysis-pipeline-router';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const assessmentId = formData.get('assessmentId') as string;
-    const studentId = formData.get('studentId') as string;
     
-    if (!assessmentId || !studentId) {
-      return NextResponse.json({ error: 'Missing assessmentId or studentId' }, { status: 400 });
+    // Securely derive identity from session
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const studentId = user.id;
+
+    if (!assessmentId) {
+      return NextResponse.json({ error: 'Missing assessmentId' }, { status: 400 });
     }
 
     const files = formData.getAll('files') as File[];
@@ -17,9 +27,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Initialize the provider
-    let provider: GeminiAnalysisProvider;
+    let provider: AnalysisPipelineRouter;
     try {
-      provider = new GeminiAnalysisProvider();
+      provider = new AnalysisPipelineRouter();
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 });
     }

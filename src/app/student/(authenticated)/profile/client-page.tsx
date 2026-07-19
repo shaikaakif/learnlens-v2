@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { Student } from '@/types';
-import { DEMO_STUDENT_ID } from '@/lib/constants';
 import { saveStudentProfile } from './actions';
+import { logout } from '@/app/actions/student-auth';
 
 export default function ProfilePage({ profileData }: { profileData: Student | null }) {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function ProfilePage({ profileData }: { profileData: Student | nu
   const [errorMessage, setErrorMessage] = useState('');
   
   const [formData, setFormData] = useState<Student>(profileData || {
-    id: DEMO_STUDENT_ID,
+    id: '',
     full_name: '',
     grade: 'Class 10',
     school_name: '',
@@ -26,6 +26,8 @@ export default function ProfilePage({ profileData }: { profileData: Student | nu
     learning_goals: '',
     areas_to_improve: ''
   });
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -229,6 +231,52 @@ export default function ProfilePage({ profileData }: { profileData: Student | nu
           </CardFooter>
         </Card>
       </form>
+
+      {/* Account & Session Section */}
+      <div className="space-y-4 pt-4">
+        <h3 className="text-lg font-medium text-destructive">Account & Session</h3>
+        <Card className="border-destructive/20 bg-destructive/5">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div className="space-y-1">
+              <h4 className="font-medium text-foreground">Sign Out</h4>
+              <p className="text-sm text-muted-foreground">Log out of your LearnLens account on this device.</p>
+            </div>
+            <Button variant="destructive" type="button" size="sm" className="gap-2" onClick={() => setShowLogoutModal(true)}>
+              <LogOut className="w-4 h-4" /> Log Out
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <Card className="w-full max-w-sm shadow-2xl animate-in zoom-in-95 fade-in">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                <span className="text-2xl">🥺</span>
+              </div>
+              <CardTitle className="text-xl">Don't leave just yet</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="font-medium text-foreground">Are you sure you want to log out of LearnLens?</p>
+              <p className="text-sm text-muted-foreground">
+                Your progress and Learning MRI history will be safely waiting for you when you return.
+              </p>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 pb-6">
+              <Button onClick={() => setShowLogoutModal(false)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-base">
+                Stay with LearnLens 💚
+              </Button>
+              <form action={logout} className="w-full">
+                <Button type="submit" variant="ghost" className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                  Yes, log me out
+                </Button>
+              </form>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+
     </div>
   );
 }

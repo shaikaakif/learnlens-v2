@@ -1,20 +1,25 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, TrendingUp, Calendar, ArrowRight } from 'lucide-react';
-import { db } from '@/lib/db';
-import { DEMO_STUDENT_ID } from '@/lib/constants';
-import { getSupabaseServerClient } from '@/lib/db/supabase';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { LearningMRI } from '@/types';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProgressPage() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/student/login');
+  }
+
   const { data: analyses, error } = await supabase
     .from('analyses')
     .select('id, created_at, subject_detected, score_obtained, score_total, analysis_data')
-    .eq('student_id', DEMO_STUDENT_ID)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
