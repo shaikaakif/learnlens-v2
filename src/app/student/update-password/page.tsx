@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react'
@@ -22,11 +22,20 @@ export default function UpdatePassword() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  const exchangeAttempted = useRef(false)
+
   useEffect(() => {
-    if (code) {
+    if (code && !exchangeAttempted.current) {
+      exchangeAttempted.current = true
       // Exchange the PKCE code for an actual auth session
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) setError('Invalid or expired reset link. Please request a new one.')
+      supabase.auth.exchangeCodeForSession(code).then(async ({ error }) => {
+        if (error) {
+          // In some cases, if the code was already consumed but we have a valid session, it's fine.
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            setError('Invalid or expired reset link. Please request a new one.')
+          }
+        }
       })
     }
   }, [code, supabase.auth])

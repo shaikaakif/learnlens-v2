@@ -12,6 +12,15 @@ function isRateLimit(error: any) {
   return msg.includes('rate limit') || msg.includes('too many requests') || error?.status === 429
 }
 
+function getSiteUrl() {
+  let url = process.env.NEXT_PUBLIC_SITE_URL || 
+            process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
+            process.env.NEXT_PUBLIC_VERCEL_URL || 
+            'http://localhost:3000';
+  url = url.startsWith('http') ? url : `https://${url}`;
+  return url;
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
@@ -42,7 +51,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/student/login`,
+      emailRedirectTo: `${getSiteUrl()}/student/login`,
     },
   })
 
@@ -138,7 +147,7 @@ export async function forgotPassword(formData: FormData) {
 
   // Production password recovery through Supabase + Resend
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/student/update-password`,
+    redirectTo: `${getSiteUrl()}/student/update-password`,
   })
 
   if (error) {
