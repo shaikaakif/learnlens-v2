@@ -35,12 +35,16 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
-  const { data: signUpData, error } = await supabase.auth.signUp(data)
+  const { data: signUpData, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/student/login`,
+    },
+  })
 
   if (error) {
     if (isRateLimit(error)) {
@@ -49,22 +53,41 @@ export async function signup(formData: FormData) {
     return { error: error.message }
   }
 
-  // DEV BYPASS: Auto-confirm user so testers don't need to wait for emails locally
-  if (process.env.NODE_ENV === 'development' && process.env.AUTH_DEV_BYPASS === 'true' && signUpData?.user) {
+  // DEV BYPASS: Auto-confirm users locally only
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.AUTH_DEV_BYPASS === 'true' &&
+    signUpData?.user
+  ) {
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const adminClient = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY,
-        { auth: { autoRefreshToken: false, persistSession: false } }
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
       )
-      await adminClient.auth.admin.updateUserById(signUpData.user.id, { email_confirm: true })
-      return { success: true, message: 'DEV BYPASS: Account auto-confirmed. You can log in immediately.' }
+
+      await adminClient.auth.admin.updateUserById(
+        signUpData.user.id,
+        { email_confirm: true }
+      )
+
+      return {
+        success: true,
+        message:
+          'DEV BYPASS: Account auto-confirmed. You can log in immediately.',
+      }
     }
   }
 
-  // If email confirmation is required, the user will be prompted on the frontend.
-  // We'll return a success payload so the frontend can handle the state.
-  return { success: true, message: 'Check your email to continue sign in process' }
+  return {
+    success: true,
+    message: 'Check your email to continue the sign in process.',
+  }
 }
 
 export async function logout() {
