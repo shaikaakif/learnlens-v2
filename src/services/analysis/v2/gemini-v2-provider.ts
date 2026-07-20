@@ -11,14 +11,32 @@ import { normalizeLearningMRI } from '@/lib/ai/normalize';
 import { AIFailureError } from '@/lib/ai/errors';
 
 export class GeminiV2Provider implements AnalysisProvider {
-  private ai: GoogleGenAI;
+  private primaryAi: GoogleGenAI;
+  private secondaryAi?: GoogleGenAI;
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is missing. Cannot initialize Gemini V2 Analysis Provider.');
     }
-    this.ai = new GoogleGenAI({ apiKey });
+    this.primaryAi = new GoogleGenAI({ apiKey });
+    
+    const secondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
+    if (secondaryKey) {
+      this.secondaryAi = new GoogleGenAI({ apiKey: secondaryKey });
+    }
+  }
+
+  private async generateContentWithFallback(params: any): Promise<any> {
+    try {
+      return await this.primaryAi.models.generateContent(params);
+    } catch (error: any) {
+      if (this.secondaryAi) {
+        console.warn('Primary Gemini API failed, falling back to secondary key. Error:', error.message);
+        return await this.secondaryAi.models.generateContent(params);
+      }
+      throw error;
+    }
   }
 
   async analyzeAssessment(request: AnalysisRequest): Promise<LearningMRI> {
@@ -53,15 +71,15 @@ export class GeminiV2Provider implements AnalysisProvider {
       const contents = [...fileParts, { text: finalPrompt }];
 
       stageStart = Date.now();
-      logAI({ requestId: reqId, stage: 'HOLISTIC_ANALYSIS_STARTED', message: 'Calling gemini-2.5-flash natively for document mapping and diagnosis' });
+      logAI({ requestId: reqId, stage: 'HOLISTIC_ANALYSIS_STARTED', message: 'Calling gemini-flash-latest natively for document mapping and diagnosis' });
 
       // In V2, we leverage Gemini 1.5's massive context window for a single holistic pass 
       // rather than fragile batching. This perfectly builds the "Document Map" natively,
       // avoiding cross-page hallucination (like missing Q23).
       let response;
       try {
-        response = await this.ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+        response = await this.generateContentWithFallback({
+          model: 'gemini-flash-latest',
           contents,
           config: {
             responseMimeType: 'application/json',
@@ -171,8 +189,8 @@ ${JSON.stringify(issues, null, 2)}
 Invalid JSON:
 ${JSON.stringify(failedJson, null, 2)}`;
 
-    const response = await this.ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    const response = await this.generateContentWithFallback({
+      model: 'gemini-flash-latest',
       contents: [{ text: repairPrompt }],
       config: {
         responseMimeType: 'application/json',

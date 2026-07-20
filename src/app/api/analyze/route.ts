@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Save to Supabase persistent store
     await db.saveAnalysis(mri, {
-      model_used: 'gemini-2.5-flash',
+      model_used: 'gemini-flash-latest',
       processing_duration_ms: duration
     });
 

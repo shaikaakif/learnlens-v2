@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     log('IMAGE_BYTES_READ', reqId, { byteLength: buffer.byteLength });
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = 'gemini-2.5-flash';
+    const model = 'gemini-flash-latest';
 
     log('GEMINI_REQUEST_STARTED', reqId, { model });
 

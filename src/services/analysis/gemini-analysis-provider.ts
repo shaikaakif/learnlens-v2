@@ -11,14 +11,32 @@ import { normalizeLearningMRI } from '@/lib/ai/normalize';
 import { AIFailureError } from '@/lib/ai/errors';
 
 export class GeminiAnalysisProvider implements AnalysisProvider {
-  private ai: GoogleGenAI;
+  private primaryAi: GoogleGenAI;
+  private secondaryAi?: GoogleGenAI;
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is missing. Cannot initialize Gemini Analysis Provider.');
     }
-    this.ai = new GoogleGenAI({ apiKey });
+    this.primaryAi = new GoogleGenAI({ apiKey });
+
+    const secondaryKey = process.env.GEMINI_API_KEY_SECONDARY;
+    if (secondaryKey) {
+      this.secondaryAi = new GoogleGenAI({ apiKey: secondaryKey });
+    }
+  }
+
+  private async generateContentWithFallback(params: any): Promise<any> {
+    try {
+      return await this.primaryAi.models.generateContent(params);
+    } catch (error: any) {
+      if (this.secondaryAi) {
+        console.warn('Primary Gemini API failed, falling back to secondary key. Error:', error.message);
+        return await this.secondaryAi.models.generateContent(params);
+      }
+      throw error;
+    }
   }
 
   async analyzeAssessment(request: AnalysisRequest): Promise<LearningMRI> {
@@ -49,12 +67,12 @@ export class GeminiAnalysisProvider implements AnalysisProvider {
       const contents = [...fileParts, { text: finalPrompt }];
 
       const startTime = Date.now();
-      logAI({ requestId: reqId, stage: 'GEMINI_REQUEST_STARTED', message: 'Calling gemini-2.5-flash with structured output' });
+      logAI({ requestId: reqId, stage: 'GEMINI_REQUEST_STARTED', message: 'Calling gemini-flash-latest with structured output' });
 
       let response;
       try {
-        response = await this.ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+        response = await this.generateContentWithFallback({
+          model: 'gemini-flash-latest',
           contents,
           config: {
             responseMimeType: 'application/json',
@@ -156,8 +174,8 @@ ${JSON.stringify(failedJson, null, 2)}
 
 Return ONLY the corrected JSON object.`;
 
-    const response = await this.ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    const response = await this.generateContentWithFallback({
+      model: 'gemini-flash-latest',
       contents: [{ text: repairPrompt }],
       config: {
         responseMimeType: 'application/json',
