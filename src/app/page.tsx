@@ -69,7 +69,7 @@ export default function LandingPage() {
             </Link>
 
             {/* Admin Portal */}
-            <Link href="/admin/login" className="block group">
+            <Link href="/admin/dashboard" className="block group">
               <Card className="h-full border-border/60 shadow-sm transition-all duration-500 hover:shadow-md hover:-translate-y-1 bg-white/60 backdrop-blur-md">
                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                   <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">

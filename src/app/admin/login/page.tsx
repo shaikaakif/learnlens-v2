@@ -12,9 +12,9 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md shadow-xl border-t-4 border-t-foreground">
+      <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-12 h-12 bg-foreground/10 rounded-full flex items-center justify-center text-foreground">
+          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
             <Settings className="w-6 h-6" />
           </div>
           <div>
@@ -28,7 +28,7 @@ export default function AdminLogin() {
             
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
-                Demo Password
+                Passcode
               </label>
               <input
                 id="password"
@@ -47,17 +47,13 @@ export default function AdminLogin() {
               </div>
             )}
 
-            <p className="text-xs text-muted-foreground text-center">
-              Developer Note: This is a demo-only gate. In Phase 3, this will be replaced with Supabase Auth.
-            </p>
-
-            <Button type="submit" variant="secondary" className="w-full" disabled={pending}>
+            <Button type="submit" className="w-full" disabled={pending}>
               {pending ? 'Verifying...' : 'Access Portal'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center border-t border-border pt-6">
-          <Link href="/" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/" className="text-sm text-primary hover:underline">
             Return to Home
           </Link>
         </CardFooter>

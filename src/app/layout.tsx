@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import { PWAPrompt } from "@/components/pwa-prompt";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 
 export default function RootLayout({
   children,
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className={`${manrope.variable} ${playfair.variable} font-sans antialiased bg-background text-foreground min-h-screen flex flex-col selection:bg-primary/20 selection:text-foreground`}>
         {children}
         <PWAPrompt />
+        <AnalyticsTracker />
       </body>
     </html>
   );
