@@ -79,7 +79,7 @@ export class GeminiV2Provider implements AnalysisProvider {
       let response;
       try {
         response = await this.generateContentWithFallback({
-          model: 'gemini-flash-latest',
+          model: 'gemini-flash-lite-latest',
           contents,
           config: {
             responseMimeType: 'application/json',
@@ -190,7 +190,7 @@ Invalid JSON:
 ${JSON.stringify(failedJson, null, 2)}`;
 
     const response = await this.generateContentWithFallback({
-      model: 'gemini-flash-latest',
+      model: 'gemini-flash-lite-latest',
       contents: [{ text: repairPrompt }],
       config: {
         responseMimeType: 'application/json',
