@@ -1,10 +1,19 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { BookOpen, Users, Settings, ArrowRight } from 'lucide-react';
 import { InsightField } from '@/components/ui/insight-field';
+import { createClient } from '@/lib/supabase/server';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // If already signed in, auto-redirect to student dashboard
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    redirect('/student/dashboard');
+  }
   return (
     <main className="flex-1 flex flex-col items-center min-h-[90vh] relative overflow-hidden">
       
@@ -33,7 +42,7 @@ export default function LandingPage() {
           
           {/* Student Portal (Primary Emphasis) */}
           <Link href="/student/dashboard" className="block group">
-            <Card className="relative overflow-hidden border-primary/30 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1 bg-white/80 backdrop-blur-md">
+            <Card className="relative overflow-hidden border-primary/30 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-95 bg-white/80 backdrop-blur-md">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <CardContent className="p-8 flex items-center justify-between">
                 <div className="space-y-2">
@@ -55,7 +64,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-6">
             {/* Teacher Portal */}
             <Link href="/teacher/login" className="block group">
-              <Card className="h-full border-border/60 shadow-sm transition-all duration-500 hover:shadow-md hover:-translate-y-1 bg-white/60 backdrop-blur-md">
+              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/60 backdrop-blur-md">
                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                   <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
                     <Users className="w-5 h-5" />
@@ -70,7 +79,7 @@ export default function LandingPage() {
 
             {/* Admin Portal */}
             <Link href="/admin/dashboard" className="block group">
-              <Card className="h-full border-border/60 shadow-sm transition-all duration-500 hover:shadow-md hover:-translate-y-1 bg-white/60 backdrop-blur-md">
+              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/60 backdrop-blur-md">
                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                   <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
                     <Settings className="w-5 h-5" />
