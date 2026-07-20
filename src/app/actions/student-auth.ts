@@ -51,7 +51,7 @@ export async function signup(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${getSiteUrl()}/student/login`,
+      emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/student/login`,
     },
   })
 
@@ -147,7 +147,7 @@ export async function forgotPassword(formData: FormData) {
 
   // Production password recovery through Supabase + Resend
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${getSiteUrl()}/student/update-password`,
+    redirectTo: `${getSiteUrl()}/auth/callback?next=/student/update-password`,
   })
 
   if (error) {

@@ -22,23 +22,8 @@ export default function UpdatePassword() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const exchangeAttempted = useRef(false)
-
-  useEffect(() => {
-    if (code && !exchangeAttempted.current) {
-      exchangeAttempted.current = true
-      // Exchange the PKCE code for an actual auth session
-      supabase.auth.exchangeCodeForSession(code).then(async ({ error }) => {
-        if (error) {
-          // In some cases, if the code was already consumed but we have a valid session, it's fine.
-          const { data: { session } } = await supabase.auth.getSession()
-          if (!session) {
-            setError('Invalid or expired reset link. Please request a new one.')
-          }
-        }
-      })
-    }
-  }, [code, supabase.auth])
+  // We no longer exchange the code here because the server-side /auth/callback route handles it.
+  // By the time the user reaches this page, they already have a valid session in their cookies.
 
   const handleUpdate = async () => {
     setLoading(true)
