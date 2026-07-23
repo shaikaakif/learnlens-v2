@@ -73,7 +73,6 @@ export function InsightField({ className, variant = "hero", interactive = true }
   // Variant specific styling
   const isHero = variant === "hero";
   const isAnalysis = variant === "analysis";
-  const isSubtle = variant === "subtle";
 
   return (
     <div 

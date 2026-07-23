@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, BookOpen, CheckCircle2, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
+import { AmbientAuroraBackground } from '@/components/ui/ambient-aurora-background'
+
 export default function StudentLogin() {
   const [viewState, setViewState] = useState<'signin' | 'signup' | 'forgot'>('signin')
   const [showPassword, setShowPassword] = useState(false)
@@ -30,14 +32,14 @@ export default function StudentLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       
-      {/* Decorative blurred background shapes */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary rounded-full blur-3xl pointer-events-none" />
+      {/* Living Aurora Atmospheric Background */}
+      <AmbientAuroraBackground variant="auth" />
 
-      <Card className="w-full max-w-md shadow-2xl border-primary/20 bg-white/70 backdrop-blur-xl relative z-10">
+      <Card className="w-full max-w-md shadow-2xl shadow-primary/5 border-primary/25 bg-white/75 backdrop-blur-2xl relative z-10">
         <CardHeader className="text-center space-y-4 pt-8">
-          <div className="mx-auto w-16 h-16 bg-primary/15 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20">
-            <BookOpen className="w-8 h-8" />
+          <div className="relative mx-auto w-16 h-16 bg-primary/15 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full -z-10" />
+            <BookOpen className="w-8 h-8 relative z-10" />
           </div>
           <div>
             <CardTitle className="text-3xl font-serif text-foreground">
@@ -81,7 +83,7 @@ export default function StudentLogin() {
                   name="email"
                   type="email"
                   required
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
+                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/70"
                   placeholder="student@example.com"
                 />
               </div>
@@ -93,7 +95,7 @@ export default function StudentLogin() {
                       Password
                     </label>
                     {viewState === 'signin' && (
-                      <button type="button" onClick={() => setViewState('forgot')} className="text-xs text-primary hover:underline">
+                      <button type="button" onClick={() => setViewState('forgot')} className="text-xs text-primary hover:underline font-medium">
                         Forgot password?
                       </button>
                     )}
@@ -104,7 +106,7 @@ export default function StudentLogin() {
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       required
-                      className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 pr-12 text-sm transition-colors focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
+                      className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 pr-12 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/70"
                       placeholder="••••••••"
                     />
                     <button
@@ -126,7 +128,7 @@ export default function StudentLogin() {
                 </div>
               )}
 
-              <Button type="submit" size="lg" className="w-full h-12 rounded-xl text-base font-semibold tracking-wide shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group" disabled={pending}>
+              <Button type="submit" size="lg" className="w-full h-12 rounded-xl text-base font-semibold tracking-wide shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all group" disabled={pending}>
                 {pending 
                   ? (viewState === 'signup' ? 'Creating Account...' : viewState === 'forgot' ? 'Sending...' : 'Signing In...') 
                   : (viewState === 'signup' ? 'Create Account' : viewState === 'forgot' ? 'Reset Password' : 'Sign In')}
@@ -150,7 +152,7 @@ export default function StudentLogin() {
       </Card>
       
       {/* Return to home */}
-      <Link href="/" className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors bg-white/50 backdrop-blur-md px-4 py-2 rounded-full border border-border/50 shadow-sm">
+      <Link href="/" className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-border/50 shadow-sm z-20">
         ← Home
       </Link>
     </div>

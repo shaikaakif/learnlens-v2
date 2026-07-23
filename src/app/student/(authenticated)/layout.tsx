@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Activity, FileText, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AmbientAuroraBackground } from '@/components/ui/ambient-aurora-background';
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,7 +17,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-muted/30 flex flex-col md:flex-row pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="min-h-[100dvh] bg-muted/20 flex flex-col md:flex-row pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 relative overflow-hidden">
+      {/* Living Aurora Ambient Background */}
+      <AmbientAuroraBackground variant="subtle" />
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-background border-r border-border flex-col shrink-0">
         <div className="p-6 border-b border-border/60">

@@ -7,6 +7,8 @@ import { AlertCircle, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+import { AmbientAuroraBackground } from '@/components/ui/ambient-aurora-background'
+
 export default function UpdatePassword() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -46,11 +48,15 @@ export default function UpdatePassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <Card className="w-full max-w-md shadow-2xl border-primary/20 bg-white/70 backdrop-blur-xl relative z-10">
+      
+      {/* Living Aurora Atmospheric Background */}
+      <AmbientAuroraBackground variant="auth" />
+
+      <Card className="w-full max-w-md shadow-2xl shadow-primary/5 border-primary/25 bg-white/75 backdrop-blur-2xl relative z-10">
         <CardHeader className="text-center space-y-4 pt-8">
-          <div className="mx-auto w-16 h-16 bg-primary/15 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20">
-            <Lock className="w-8 h-8" />
+          <div className="relative mx-auto w-16 h-16 bg-primary/15 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full -z-10" />
+            <Lock className="w-8 h-8 relative z-10" />
           </div>
           <div>
             <CardTitle className="text-3xl font-serif text-foreground">
@@ -92,7 +98,7 @@ export default function UpdatePassword() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 pr-12 text-sm transition-colors focus-visible:outline-none focus-visible:border-primary/50 focus-visible:ring-4 focus-visible:ring-primary/10"
+                    className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 pr-12 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/70"
                     placeholder="••••••••"
                   />
                   <button
@@ -112,7 +118,7 @@ export default function UpdatePassword() {
                 </div>
               )}
 
-              <Button type="button" onClick={handleUpdate} size="lg" className="w-full h-12 rounded-xl text-base font-semibold tracking-wide" disabled={loading}>
+              <Button type="button" onClick={handleUpdate} size="lg" className="w-full h-12 rounded-xl text-base font-semibold tracking-wide shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all" disabled={loading}>
                 {loading ? 'Updating...' : 'Update Password'}
               </Button>
             </div>
@@ -122,3 +128,4 @@ export default function UpdatePassword() {
     </div>
   )
 }
+

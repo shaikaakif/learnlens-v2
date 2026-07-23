@@ -75,10 +75,95 @@ body {
   }
   
   .glass-surface {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .aurora-input {
+    transition: border-color 0.3s ease, box-shadow 0.4s ease, background-color 0.3s ease;
+  }
+  
+  .aurora-input:focus,
+  .aurora-input:focus-visible {
+    border-color: rgba(16, 185, 129, 0.65) !important;
+    box-shadow: 0 0 0 4px rgba(165, 243, 252, 0.35), 0 0 16px rgba(192, 172, 238, 0.25) !important;
   }
 }
+
+@keyframes aurora-pulse-slow {
+  0% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+    opacity: 0.65;
+  }
+  33% {
+    transform: translate(70px, -45px) scale(1.22) rotate(10deg);
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(-50px, 35px) scale(0.92) rotate(-8deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(30px, -20px) scale(1.1) rotate(5deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes aurora-pulse-mid {
+  0% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translate(-80px, 50px) scale(1.25) rotate(-12deg);
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(60px, -30px) scale(0.95) rotate(15deg);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate(-30px, 25px) scale(1.15) rotate(-5deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes aurora-pulse-alt {
+  0% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(65px, 75px) scale(1.28) rotate(18deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-45px, -50px) scale(0.9) rotate(-10deg);
+    opacity: 0.6;
+  }
+}
+
+.animate-aurora-slow {
+  animation: aurora-pulse-slow 16s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+.animate-aurora-mid {
+  animation: aurora-pulse-mid 13s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+.animate-aurora-alt {
+  animation: aurora-pulse-alt 18s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-slow,
+  .animate-aurora-mid,
+  .animate-aurora-alt {
+    animation: none !important;
+  }
+}
+
+
 

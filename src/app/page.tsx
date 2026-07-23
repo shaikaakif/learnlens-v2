@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { BookOpen, Users, Settings, ArrowRight } from 'lucide-react';
-import { InsightField } from '@/components/ui/insight-field';
+import { AmbientAuroraBackground } from '@/components/ui/ambient-aurora-background';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function LandingPage() {
@@ -17,8 +17,8 @@ export default async function LandingPage() {
   return (
     <main className="flex-1 flex flex-col items-center min-h-[90vh] relative overflow-hidden">
       
-      {/* Signature Insight Field Background */}
-      <InsightField variant="hero" />
+      {/* Living Aurora Atmospheric Background */}
+      <AmbientAuroraBackground variant="hero" />
 
       <div className="w-full max-w-7xl mx-auto px-6 py-20 md:py-32 flex flex-col md:flex-row items-center justify-between gap-16 relative z-10">
         
@@ -42,8 +42,8 @@ export default async function LandingPage() {
           
           {/* Student Portal (Primary Emphasis) */}
           <Link href="/student/dashboard" className="block group">
-            <Card className="relative overflow-hidden border-primary/30 shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-95 bg-white/80 backdrop-blur-md">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <Card className="relative overflow-hidden border-primary/30 shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 active:scale-95 bg-white/70 backdrop-blur-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <CardContent className="p-8 flex items-center justify-between">
                 <div className="space-y-2">
                   <div className="w-12 h-12 bg-primary/15 rounded-2xl flex items-center justify-center mb-4 text-primary shadow-sm border border-primary/20">
@@ -64,9 +64,9 @@ export default async function LandingPage() {
           <div className="grid grid-cols-2 gap-6">
             {/* Teacher Portal */}
             <Link href="/teacher/login" className="block group">
-              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/60 backdrop-blur-md">
+              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/55 backdrop-blur-xl">
                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
-                  <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
+                  <div className="w-10 h-10 bg-muted/80 rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
@@ -79,9 +79,9 @@ export default async function LandingPage() {
 
             {/* Admin Portal */}
             <Link href="/admin/dashboard" className="block group">
-              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/60 backdrop-blur-md">
+              <Card className="h-full border-border/60 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-95 bg-white/55 backdrop-blur-xl">
                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
-                  <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
+                  <div className="w-10 h-10 bg-muted/80 rounded-xl flex items-center justify-center text-foreground border border-border group-hover:border-primary/30 transition-colors">
                     <Settings className="w-5 h-5" />
                   </div>
                   <div>
