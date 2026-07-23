@@ -121,16 +121,6 @@ export default function AnalyzePage() {
     return <AnalysisProgressExperience state={processState} onRetry={() => {}} onCancel={() => {}} />;
   }
 
-  // If Fullscreen Camera is active
-  if (isCameraActive) {
-    return (
-      <AnswerSheetCamera 
-        onCapture={handleCameraCapture}
-        onClose={() => setIsCameraActive(false)}
-      />
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-12 animate-in fade-in duration-700 slide-in-from-bottom-8">
       
@@ -274,6 +264,14 @@ export default function AnalyzePage() {
         }}
         onSelectFiles={handleFilesAdded}
       />
+
+      {/* Fullscreen Camera & Review Overlay */}
+      {isCameraActive && (
+        <AnswerSheetCamera
+          onCapture={handleCameraCapture}
+          onClose={() => setIsCameraActive(false)}
+        />
+      )}
       
     </div>
   );
