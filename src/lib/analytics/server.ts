@@ -26,6 +26,7 @@ export type AnalyticsEvent =
   | 'analysis_started' 
   | 'analysis_completed' 
   | 'analysis_failed' 
+  | 'analysis_rejected_invalid_input'
   | 'pwa_install';
 
 export interface LogEventParams {

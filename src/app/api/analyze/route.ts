@@ -27,6 +27,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
+    // Lightweight Answer Sheet Validation Gate
+    try {
+      const { AnswerSheetValidator } = await import('@/services/analysis/answer-sheet-validator');
+      const validator = new AnswerSheetValidator();
+      const validationResult = await validator.validate(files);
+
+      if (!validationResult.isAnswerSheet && validationResult.confidence !== 'low') {
+        logServerEvent({
+          userId: studentId,
+          eventType: 'analysis_rejected_invalid_input',
+          metadata: {
+            assessmentId,
+            reason: validationResult.reason,
+            confidence: validationResult.confidence,
+            fileCount: files.length,
+          },
+        });
+
+        return NextResponse.json(
+          {
+            success: false,
+            isInvalidAnswerSheet: true,
+            error: {
+              code: 'INVALID_ANSWER_SHEET',
+              title: "This doesn't appear to be an answer sheet.",
+              message: "LearnLens analyzes academic answer sheets and assessments. Please upload a clear photo or PDF of your assessment.",
+              reason: validationResult.reason,
+            },
+          },
+          { status: 422 }
+        );
+      }
+    } catch (valErr: any) {
+      console.warn('Validation gate non-blocking check error:', valErr.message);
+    }
+
     // Initialize the provider
     let provider: AnalysisPipelineRouter;
     try {

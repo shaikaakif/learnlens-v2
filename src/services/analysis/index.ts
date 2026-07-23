@@ -28,7 +28,13 @@ export class AnalysisService {
         }
       }
       
-      throw new Error(errorMessage);
+      const err = new Error(errorMessage) as any;
+      if (errorData?.isInvalidAnswerSheet) {
+        err.isInvalidAnswerSheet = true;
+        err.title = errorData.error?.title || "This doesn't appear to be an answer sheet.";
+        err.reason = errorData.error?.reason;
+      }
+      throw err;
     }
 
     const data = await response.json();

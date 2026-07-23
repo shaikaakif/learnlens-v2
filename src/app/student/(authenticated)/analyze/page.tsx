@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, FileImage, AlertCircle, X, Trash2, BrainCircuit, Camera as CameraIcon, Plus } from 'lucide-react';
+import { UploadCloud, FileImage, AlertCircle, X, Trash2, BrainCircuit, Camera as CameraIcon, Plus, FileQuestion, FolderOpen } from 'lucide-react';
 import { AnalysisService } from '@/services/analysis';
 import { AnalysisProgressExperience } from '@/components/ui/analysis-progress-experience';
 import { ImageSourceSheet } from '@/components/student/image-source-sheet';
@@ -19,6 +19,7 @@ export default function AnalyzePage() {
   const [filePreviews, setFilePreviews] = useState<{file: File, url: string}[]>([]);
   const [processState, setProcessState] = useState<ProcessState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<{ title: string; message: string; reason?: string } | null>(null);
   
   // UI State
   const [isMobile, setIsMobile] = useState(false);
@@ -58,6 +59,7 @@ export default function AnalyzePage() {
     if (newFiles.length > 0) {
       setFiles(prev => [...prev, ...newFiles]);
       setError(null);
+      setValidationError(null);
       setIsSourceSheetOpen(false);
     }
   };
@@ -89,6 +91,7 @@ export default function AnalyzePage() {
 
     setProcessState('uploading');
     setError(null);
+    setValidationError(null);
     
     try {
       const analysisService = new AnalysisService();
@@ -109,7 +112,13 @@ export default function AnalyzePage() {
     } catch (err: any) {
       setProcessState('failed');
       console.error(err);
-      if (err.message && err.message.includes('AIFailureError')) {
+      if (err.isInvalidAnswerSheet) {
+        setValidationError({
+          title: err.title || "This doesn't appear to be an answer sheet.",
+          message: "LearnLens analyzes academic answer sheets and assessments. Please upload a clear photo or PDF of your assessment.",
+          reason: err.reason,
+        });
+      } else if (err.message && err.message.includes('AIFailureError')) {
          setError("We encountered an issue while generating the Learning MRI. Please ensure the image is clear and try again.");
       } else {
          setError(err.message || "An unexpected error occurred during analysis.");
@@ -128,6 +137,58 @@ export default function AnalyzePage() {
         <h1 className="text-3xl font-serif">Analyze Answer Sheet</h1>
         <p className="text-muted-foreground text-lg">Upload clear photos of your answer sheet for automatic subject detection and analysis.</p>
       </div>
+
+      {/* Answer Sheet Validation Gate Alert */}
+      {validationError && (
+        <Card className="border-amber-500/30 bg-amber-500/5 shadow-xl animate-in fade-in zoom-in-95">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                <FileQuestion className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <h3 className="text-xl font-bold font-serif text-foreground">
+                  {validationError.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {validationError.message}
+                </p>
+                {validationError.reason && (
+                  <p className="text-xs text-amber-700 dark:text-amber-300 italic font-mono bg-amber-500/10 px-3 py-1 rounded-md inline-block mt-2">
+                    Reason: {validationError.reason}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-amber-500/20">
+              <Button
+                variant="outline"
+                className="rounded-xl border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 font-semibold"
+                onClick={() => {
+                  setValidationError(null);
+                  setFiles([]);
+                  if (isMobile) setIsSourceSheetOpen(true);
+                  else triggerDesktopUpload();
+                }}
+              >
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Choose Another File
+              </Button>
+              <Button
+                className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-md"
+                onClick={() => {
+                  setValidationError(null);
+                  setFiles([]);
+                  setIsCameraActive(true);
+                }}
+              >
+                <CameraIcon className="w-4 h-4 mr-2" />
+                Open Camera
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-border/60 shadow-xl bg-card">
         <CardContent className="pt-6 space-y-8">
