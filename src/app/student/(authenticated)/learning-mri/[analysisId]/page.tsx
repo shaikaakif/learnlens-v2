@@ -1,4 +1,4 @@
-import { CopyContextButton } from '@/components/student/copy-context-button';
+import { AiTutorControls } from '@/components/student/ai-tutor-controls';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -191,19 +191,7 @@ Please provide a short practice exercise to help me work on these specific impro
           {tutorContextText}
         </div>
         
-        <div className="flex flex-wrap gap-4 pt-4 relative z-10">
-          <CopyContextButton contextText={tutorContextText} />
-          <a href="https://chatgpt.com" target="_blank" rel="noreferrer">
-            <Button variant="outline" className="bg-transparent border-white/20 text-white hover:bg-white/10 gap-2 h-12 px-6 rounded-xl">
-              Open ChatGPT <ExternalLink className="w-4 h-4" />
-            </Button>
-          </a>
-          <a href="https://gemini.google.com" target="_blank" rel="noreferrer">
-            <Button variant="outline" className="bg-transparent border-white/20 text-white hover:bg-white/10 gap-2 h-12 px-6 rounded-xl">
-              Open Gemini <ExternalLink className="w-4 h-4" />
-            </Button>
-          </a>
-        </div>
+        <AiTutorControls promptText={tutorContextText} />
       </div>
     </div>
   );
