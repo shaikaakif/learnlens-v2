@@ -27,12 +27,29 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with cross-site request forgery (CSRF).
+  // Safely get user and error status
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser()
+
+  // Helper to construct redirect response preserving Supabase cookies (e.g. token refresh or deletions)
+  const createRedirectResponse = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
+  }
+
+  // Clear stale auth cookies when refresh token is invalid or expired
+  if (error && !user) {
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.startsWith('sb-')) {
+        supabaseResponse.cookies.delete(cookie.name)
+      }
+    })
+  }
 
   // Protect student routes
   if (
@@ -43,7 +60,7 @@ export async function updateSession(request: NextRequest) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/student/login'
-      return NextResponse.redirect(url)
+      return createRedirectResponse(url)
     }
   }
 
@@ -51,7 +68,7 @@ export async function updateSession(request: NextRequest) {
   if ((request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/student/login') && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/student/dashboard'
-    return NextResponse.redirect(url)
+    return createRedirectResponse(url)
   }
 
   return supabaseResponse

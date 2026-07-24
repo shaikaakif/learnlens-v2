@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { InsightField } from "./insight-field";
+import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+import { CheckCircle2, AlertCircle, RotateCcw, ArrowLeft, Brain } from "lucide-react";
 import { Button } from "./button";
-import { AlertCircle, ArrowLeft, RotateCcw } from "lucide-react";
-import { vibrateSuccess, vibrateError } from "@/lib/haptics";
+import { AmbientAuroraBackground } from "./ambient-aurora-background";
+import { vibrateSuccess, vibrateError, vibrateLight } from "@/lib/haptics";
 
 type ProgressStage = 
   | 'idle' 
@@ -16,178 +17,300 @@ type ProgressStage =
 
 interface AnalysisProgressExperienceProps {
   state: ProgressStage;
+  fileCount?: number;
   error?: string | null;
   onRetry: () => void;
   onCancel: () => void;
 }
 
-const EDUCATIONAL_FACTS = [
-  "Understanding why you lost one mark can prevent the same mistake across multiple questions.",
-  "Your score tells you what happened. Your mistake patterns can tell you what to improve.",
-  "LearnLens separates conceptual gaps from execution mistakes.",
-  "Strong students don't only review wrong answers—they investigate why the mistake happened.",
-  "Full marks and a perfect answer are not always the same—but full-mark answers should never be classified as mark loss.",
-  "Small calculation errors can reveal patterns that are easy to fix with targeted practice."
+// 6 Core Milestone Stages for the Vertical Timeline
+const MILESTONE_STAGES = [
+  "Upload & Secure Session",
+  "Validation & Sheet Classification",
+  "Detecting Questions & Diagrams",
+  "Reading Handwriting & OCR",
+  "Understanding Student Responses",
+  "Applying Learning MRI & Report"
 ];
 
-const ANALYZING_STAGES = [
-  "Preparing your assessment...",
-  "Reading assessment pages...",
-  "Detecting your official score...",
-  "Mapping questions and answers...",
-  "Inspecting teacher markings...",
-  "Analyzing your learning patterns...",
-  "Verifying findings...",
-  "Preparing your Learning MRI..."
+// Contextual AI Status Messages to rotate smoothly under Current Stage
+const CONTEXTUAL_MESSAGES = [
+  "Preparing secure upload...",
+  "Validating answer sheet...",
+  "Separating questions...",
+  "Reading handwriting...",
+  "Detecting diagrams...",
+  "Understanding responses...",
+  "Applying Learning MRI...",
+  "Building personalized report...",
+  "Performing final verification...",
+  "Generating recommendations..."
 ];
 
 export function AnalysisProgressExperience({ 
   state, 
+  fileCount = 1,
   error, 
   onRetry, 
   onCancel
 }: AnalysisProgressExperienceProps) {
-  const [factIndex, setFactIndex] = useState(0);
-  const [stageIndex, setStageIndex] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(45); // default estimate 45s
-  
-  // Fact rotation
+  const [mounted, setMounted] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [estimatedSeconds, setEstimatedSeconds] = useState(Math.max(20, fileCount * 22));
+  const wakeLockRef = useRef<any>(null);
+
   useEffect(() => {
-    if (state !== 'analyzing') return;
-    const interval = setInterval(() => {
-      setFactIndex(prev => (prev + 1) % EDUCATIONAL_FACTS.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    setMounted(true);
+  }, []);
+
+  // Screen Wake Lock API management
+  useEffect(() => {
+    let released = false;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator && (state === 'uploading' || state === 'analyzing' || state === 'validating')) {
+          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.warn("Screen Wake Lock unavailable or denied:", err);
+      }
+    }
+
+    requestWakeLock();
+
+    return () => {
+      if (wakeLockRef.current && !released) {
+        released = true;
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
   }, [state]);
 
-  // Stage rotation (fake progress through stages)
+  // Lock body scroll & prevent accidental navigation
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (state === 'uploading' || state === 'analyzing' || state === 'validating') {
+        e.preventDefault();
+        e.returnValue = "Analysis is in progress. Leaving will cancel the session.";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [state]);
+
+  // Milestone Step Rotation + Milestone Haptics
   useEffect(() => {
     if (state === 'uploading') {
-      setStageIndex(0);
-    } else if (state === 'analyzing') {
-      let currentStage = 1;
-      setStageIndex(currentStage);
+      setCurrentStepIndex(0);
+      vibrateLight();
+    } else if (state === 'analyzing' || state === 'validating') {
+      let step = currentStepIndex < 1 ? 1 : currentStepIndex;
+      setCurrentStepIndex(step);
+      vibrateLight();
+
       const interval = setInterval(() => {
-        if (currentStage < ANALYZING_STAGES.length - 1) {
-          currentStage++;
-          setStageIndex(currentStage);
+        if (step < MILESTONE_STAGES.length - 1) {
+          step++;
+          setCurrentStepIndex(step);
+          vibrateLight(); // Milestone haptic tap
         }
-      }, 5000);
+      }, 4000);
+
       return () => clearInterval(interval);
-    } else if (state === 'validating') {
-      setStageIndex(ANALYZING_STAGES.length - 1);
-    }
-  }, [state]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (state !== 'analyzing' && state !== 'validating') return;
-    const interval = setInterval(() => {
-      setTimeRemaining(prev => Math.max(1, prev - 1)); // Never reach 0
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [state]);
-
-  useEffect(() => {
-    if (state === 'completed') {
+    } else if (state === 'completed') {
+      setCurrentStepIndex(MILESTONE_STAGES.length - 1);
       vibrateSuccess();
     } else if (state === 'failed') {
       vibrateError();
     }
   }, [state]);
 
-  let statusMessage = "LearnLens Intelligence";
-  if (state === 'uploading') statusMessage = "Securely uploading images...";
-  else if (state === 'analyzing' || state === 'validating') statusMessage = ANALYZING_STAGES[stageIndex];
-  else if (state === 'completed') statusMessage = "Your Learning MRI is ready.";
-  else if (state === 'failed') statusMessage = "Analysis interrupted.";
+  // Rotate Contextual AI Status Messages
+  useEffect(() => {
+    if (state !== 'analyzing' && state !== 'validating' && state !== 'uploading') return;
 
-  const isCompleted = state === 'completed';
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % CONTEXTUAL_MESSAGES.length);
+    }, 2800);
+
+    return () => clearInterval(interval);
+  }, [state]);
+
+  // Dynamic estimated time countdown
+  useEffect(() => {
+    if (state !== 'uploading' && state !== 'analyzing' && state !== 'validating') return;
+
+    const interval = setInterval(() => {
+      setEstimatedSeconds((prev) => Math.max(3, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state]);
+
+  if (!mounted) return null;
+
   const isFailed = state === 'failed';
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background overflow-hidden">
+  // Extract previous, current, and next steps for the 3-state focused view
+  const prevStep = currentStepIndex > 0 ? MILESTONE_STAGES[currentStepIndex - 1] : null;
+  const currentStep = MILESTONE_STAGES[currentStepIndex];
+  const nextStep = currentStepIndex < MILESTONE_STAGES.length - 1 ? MILESTONE_STAGES[currentStepIndex + 1] : null;
+
+  const overlayContent = (
+    <div className="fixed inset-0 z-[100] bg-background flex flex-col justify-between overflow-hidden select-none p-6 md:p-12 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       
-      {/* Background breathing Insight Field */}
-      <InsightField 
-        variant="analysis" 
-        interactive={false} 
-        className={`transition-all duration-1000 ease-out ${isCompleted ? 'scale-150 opacity-0 blur-2xl' : 'scale-100 opacity-100'}`} 
-      />
+      {/* Living Aurora Background - Reduced Opacity 6% for zero visual distraction */}
+      <AmbientAuroraBackground variant="hero" className="opacity-[0.06] pointer-events-none" />
 
-      <div className={`relative z-10 w-full max-w-lg mx-auto p-8 flex flex-col items-center text-center transition-all duration-1000 ${isCompleted ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>
-        
-        <h2 className="text-2xl sm:text-3xl font-serif text-slate-800 mb-2 transition-all duration-500 ease-in-out font-medium min-h-[40px] animate-in fade-in">
-          {statusMessage}
-        </h2>
-        
-        <p className="text-slate-500 text-sm font-sans tracking-widest uppercase mb-8 opacity-80">
-          LearnLens AI
+      {/* TOP: Header Title & Subtitle */}
+      <div className="relative z-10 text-center space-y-1">
+        <div className="flex items-center justify-center gap-2">
+          <Brain className="w-5 h-5 text-primary opacity-80" />
+          <h2 className="text-sm font-semibold tracking-wider uppercase text-foreground/90 font-serif">
+            Learn<span className="text-primary italic">Lens</span> AI Engine
+          </h2>
+        </div>
+        <p className="text-xs text-muted-foreground/70 tracking-wide font-sans">
+          Secure Analysis Session
         </p>
+      </div>
 
+      {/* MIDDLE: Focused 3-State Apple-Style Step View & Vertical Progress Timeline */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center my-auto w-full max-w-lg mx-auto">
+        
         {isFailed ? (
-          <div className="w-full bg-white/70 backdrop-blur-md rounded-2xl border border-destructive/20 p-6 shadow-xl animate-in fade-in slide-in-from-bottom-4">
-            <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-4 text-destructive">
-              <AlertCircle className="w-6 h-6" />
+          /* Error / Interrupted Card */
+          <div className="w-full bg-card/90 backdrop-blur-md rounded-3xl border border-destructive/20 p-8 shadow-xl space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-14 h-14 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto text-destructive border border-destructive/20">
+              <AlertCircle className="w-7 h-7" />
             </div>
-            <p className="text-destructive font-medium mb-2">We encountered an issue.</p>
-            <p className="text-slate-600 text-sm mb-6 max-w-sm mx-auto">
-              {error || "We analyzed your answer sheet, but the result could not be structured correctly. Please try again."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button variant="outline" onClick={onCancel} className="gap-2">
-                <ArrowLeft className="w-4 h-4" /> Return to Assessment
+            <div className="space-y-2">
+              <h3 className="text-xl font-serif font-bold text-foreground">Analysis Interrupted</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                {error || "The assessment analysis was interrupted. You can resume immediately from your draft pages."}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Button variant="outline" onClick={onCancel} className="rounded-xl h-11 px-5 gap-2 text-sm">
+                <ArrowLeft className="w-4 h-4" /> Back to Analyze
               </Button>
-              <Button onClick={onRetry} className="gap-2">
-                <RotateCcw className="w-4 h-4" /> Try Again
+              <Button onClick={onRetry} className="rounded-xl h-11 px-5 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm">
+                <RotateCcw className="w-4 h-4" /> Resume Analysis
               </Button>
             </div>
           </div>
         ) : (
-          <div className="w-full max-w-md mx-auto flex flex-col items-center space-y-6">
+          /* Single-Task Apple-Style Step Focus */
+          <div className="w-full flex flex-col items-center space-y-10">
             
-            {/* Indeterminate Progress Glow Track */}
-            <div className="w-full h-1.5 bg-black/5 rounded-full relative overflow-hidden">
-              <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full animate-[shimmer_2s_infinite]" />
+            {/* Minimal Icon (Scaled gently) */}
+            <div className="w-16 h-16 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm transition-transform duration-700 ease-in-out scale-100 hover:scale-105">
+              <Brain className="w-8 h-8 animate-pulse text-primary" />
             </div>
 
-            {/* Time Estimate */}
-            {(state === 'analyzing' || state === 'validating') && (
-              <div className="text-sm font-medium text-slate-600 animate-in fade-in transition-all">
-                {timeRemaining > 5 
-                  ? `Estimated time remaining: ~${timeRemaining} seconds`
-                  : "Finishing your detailed analysis..."}
+            {/* 3-State Step Focus Display (Previous, Current, Next) */}
+            <div className="w-full space-y-4 text-center min-h-[160px] flex flex-col items-center justify-center">
+              
+              {/* PREVIOUS STEP (16px Medium, 40% Opacity, Green Tick) */}
+              <div className="h-7 flex items-center justify-center gap-2 transition-all duration-500 ease-in-out">
+                {prevStep ? (
+                  <div className="flex items-center gap-2 text-foreground/40 font-medium text-base animate-in fade-in slide-in-from-bottom-2 duration-400">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 animate-in zoom-in-75 duration-300" />
+                    <span>{prevStep}</span>
+                  </div>
+                ) : (
+                  <div className="h-7" />
+                )}
               </div>
-            )}
 
-            {/* Rotating Educational Fact */}
-            {(state === 'analyzing' || state === 'validating') && (
-              <div className="mt-8 relative h-24 w-full px-4 flex items-center justify-center">
-                {EDUCATIONAL_FACTS.map((fact, idx) => (
-                  <p 
-                    key={idx}
-                    className={`absolute text-slate-700 italic text-sm sm:text-base transition-all duration-1000 ${
-                      idx === factIndex 
-                        ? 'opacity-100 translate-y-0 scale-100' 
-                        : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
-                    }`}
-                  >
-                    "{fact}"
-                  </p>
-                ))}
+              {/* CURRENT STEP (32px Semibold, 100% Opacity, Glowing Node) */}
+              <div className="space-y-2 py-1 transition-all duration-500 ease-in-out">
+                <h3 className="text-2xl sm:text-3xl font-serif font-semibold text-foreground tracking-tight text-balance animate-in fade-in slide-in-from-bottom-3 duration-500">
+                  {currentStep}
+                </h3>
+                {/* Contextual AI Status Message */}
+                <p className="text-sm font-sans text-primary/80 font-medium h-5 transition-opacity duration-300 animate-in fade-in">
+                  {CONTEXTUAL_MESSAGES[messageIndex]}
+                </p>
               </div>
-            )}
-            
+
+              {/* NEXT STEP (18px Medium, 35% Opacity) */}
+              <div className="h-7 flex items-center justify-center transition-all duration-500 ease-in-out">
+                {nextStep ? (
+                  <div className="text-muted-foreground/35 font-medium text-[17px] animate-in fade-in slide-in-from-bottom-2 duration-400">
+                    {nextStep}
+                  </div>
+                ) : (
+                  <div className="h-7 text-xs text-emerald-600 font-semibold uppercase tracking-wider">
+                    Finalizing Report...
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Thin Vertical Progress Timeline Nodes */}
+            <div className="flex items-center gap-2.5 pt-2">
+              {MILESTONE_STAGES.map((_, idx) => {
+                const isPast = idx < currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+
+                return (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div
+                      className={`transition-all duration-500 rounded-full ${
+                        isPast
+                          ? "w-2.5 h-2.5 bg-emerald-500"
+                          : isCurrent
+                          ? "w-3 h-3 bg-primary ring-4 ring-primary/20 animate-pulse"
+                          : "w-2 h-2 bg-border/60"
+                      }`}
+                    />
+                    {idx < MILESTONE_STAGES.length - 1 && (
+                      <div className={`h-0.5 w-4 transition-colors duration-500 ${isPast ? 'bg-emerald-500/60' : 'bg-border/40'}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Estimated Remaining Time Display */}
+            <div className="text-xs font-mono text-muted-foreground/70 tracking-wider">
+              Estimated remaining time: ≈ {estimatedSeconds}s
+            </div>
+
           </div>
+        )}
+
+      </div>
+
+      {/* BOTTOM: Minimal Subdued Cancel Button (Dotted Outline, Gray, 70% Opacity) */}
+      <div className="relative z-10 flex justify-center pb-2">
+        {!isFailed && (
+          <button
+            onClick={onCancel}
+            className="border border-dashed border-border/80 text-muted-foreground/80 hover:border-destructive/50 hover:text-destructive hover:bg-destructive/5 hover:border-solid text-xs font-medium rounded-full px-5 py-2 transition-all opacity-70 hover:opacity-100 active:scale-95"
+            aria-label="Cancel Analysis"
+          >
+            Cancel Analysis
+          </button>
         )}
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(300%); }
-        }
-      `}} />
     </div>
   );
+
+  return createPortal(overlayContent, document.body);
 }

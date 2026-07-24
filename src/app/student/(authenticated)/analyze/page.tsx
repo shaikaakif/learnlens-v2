@@ -83,6 +83,16 @@ export default function AnalyzePage() {
     fileInputRef.current?.click();
   };
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleCancelAnalysis = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setProcessState('idle');
+  };
+
   const handleUploadAndAnalyze = async () => {
     if (files.length === 0) {
       setError("Please select at least one image to analyze.");
@@ -92,6 +102,9 @@ export default function AnalyzePage() {
     setProcessState('uploading');
     setError(null);
     setValidationError(null);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     
     try {
       const analysisService = new AnalysisService();
@@ -99,7 +112,7 @@ export default function AnalyzePage() {
       setProcessState('uploading');
       setTimeout(() => setProcessState('analyzing'), 1500);
 
-      const analysisId = await analysisService.analyzeAssessment(files);
+      const analysisId = await analysisService.analyzeAssessment(files, controller.signal);
 
       setProcessState('validating');
       await new Promise(r => setTimeout(r, 800));
@@ -110,6 +123,12 @@ export default function AnalyzePage() {
       router.push(`/student/learning-mri/${analysisId}`);
       
     } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log('Analysis cancelled by user.');
+        setProcessState('idle');
+        return;
+      }
+
       setProcessState('failed');
       console.error(err);
       if (err.isInvalidAnswerSheet) {
@@ -123,11 +142,21 @@ export default function AnalyzePage() {
       } else {
          setError(err.message || "An unexpected error occurred during analysis.");
       }
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
   if (processState !== 'idle' && processState !== 'failed') {
-    return <AnalysisProgressExperience state={processState} onRetry={() => {}} onCancel={() => {}} />;
+    return (
+      <AnalysisProgressExperience
+        state={processState}
+        fileCount={files.length}
+        error={error}
+        onRetry={handleUploadAndAnalyze}
+        onCancel={handleCancelAnalysis}
+      />
+    );
   }
 
   return (
@@ -234,30 +263,49 @@ export default function AnalyzePage() {
             )
           )}
 
-          {/* Upload Queue (Files Selected) */}
+          {/* Upload Queue / Draft Upload Preservation */}
           {files.length > 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-foreground tracking-wide uppercase text-sm">Selected Pages ({files.length})</h3>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="rounded-full h-8 px-3 gap-1.5 border-primary/20 text-primary hover:bg-primary/10"
-                  onClick={() => isMobile ? setIsSourceSheetOpen(true) : triggerDesktopUpload()}
-                >
-                  <Plus className="w-4 h-4" /> Add Page
-                </Button>
+              <div className="flex justify-between items-center bg-primary/5 p-3 rounded-xl border border-primary/20">
+                <div>
+                  <h3 className="font-bold text-foreground tracking-wide text-sm flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Draft Upload Preserved ({files.length} {files.length === 1 ? 'Page' : 'Pages'})
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your uploaded pages are saved in draft mode. Click Resume Analysis to start.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-full h-8 px-3 gap-1.5 border-primary/30 text-primary hover:bg-primary/10 font-semibold"
+                    onClick={() => isMobile ? setIsSourceSheetOpen(true) : triggerDesktopUpload()}
+                  >
+                    <Plus className="w-4 h-4" /> Add Page
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="rounded-full h-8 px-2.5 text-destructive hover:bg-destructive/10 text-xs"
+                    onClick={() => setFiles([])}
+                    title="Remove All Draft Pages"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear
+                  </Button>
+                </div>
               </div>
               
               <div className="grid gap-3 sm:grid-cols-2">
                 {filePreviews.map((preview, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 border border-border/60 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+                  <div key={i} className="flex items-center justify-between p-3 border border-border/60 rounded-xl bg-card hover:bg-muted/40 transition-colors group shadow-sm">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-12 h-12 rounded-lg bg-black/5 flex items-center justify-center shrink-0 overflow-hidden relative">
-                        <img src={preview.url} alt={`Page ${i+1}`} className="w-full h-full object-cover" />
+                      <div className="w-12 h-12 rounded-lg bg-black/5 flex items-center justify-center shrink-0 overflow-hidden relative border border-border/40">
+                        <img src={preview.url} alt={`Draft Page ${i+1}`} className="w-full h-full object-cover" />
                       </div>
                       <div className="truncate">
-                        <p className="text-sm font-semibold truncate text-foreground/90">Page {i + 1}</p>
+                        <p className="text-sm font-semibold truncate text-foreground flex items-center gap-1.5">
+                          <span className="text-emerald-500 text-xs font-bold">✓</span> Page {i + 1}
+                        </p>
                         <p className="text-xs text-muted-foreground">{(preview.file.size / 1024 / 1024).toFixed(2)} MB</p>
                       </div>
                     </div>

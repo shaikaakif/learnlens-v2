@@ -72,18 +72,18 @@ Please provide a short practice exercise to help me work on these specific impro
       </div>
 
       {/* SECTION 3: STRENGTHS & FOCUS AREAS */}
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both">
-          <h3 className="text-xl font-semibold tracking-wide uppercase text-muted-foreground flex items-center gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-8 relative z-10">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both">
+          <h3 className="text-xl font-semibold tracking-wide uppercase text-muted-foreground flex items-center gap-3 relative z-10">
             <CheckCircle2 className="w-5 h-5 text-success" /> Validated Strengths
           </h3>
-          <Card className="h-full border-border/40 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-8 space-y-5">
-              <ul className="space-y-5">
+          <Card className="h-auto md:h-full border-border/40 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-md transition-shadow relative z-0">
+            <CardContent className="p-6 md:p-8 space-y-5">
+              <ul className="space-y-4 md:space-y-5">
                 {mri.strengths.map((strength, i) => (
                   <li key={i} className="flex items-start gap-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-success mt-2.5 shrink-0" />
-                    <span className="text-foreground/90 text-lg">{strength}</span>
+                    <span className="text-foreground/90 text-base md:text-lg">{strength}</span>
                   </li>
                 ))}
               </ul>
@@ -91,17 +91,17 @@ Please provide a short practice exercise to help me work on these specific impro
           </Card>
         </div>
 
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
-          <h3 className="text-xl font-semibold tracking-wide uppercase text-muted-foreground flex items-center gap-3">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both pt-2 md:pt-0">
+          <h3 className="text-xl font-semibold tracking-wide uppercase text-muted-foreground flex items-center gap-3 relative z-10">
             <TrendingUp className="w-5 h-5 text-primary" /> Focus Areas
           </h3>
-          <Card className="h-full border-border/40 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-8 space-y-5">
-              <ul className="space-y-5">
+          <Card className="h-auto md:h-full border-border/40 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-md transition-shadow relative z-0">
+            <CardContent className="p-6 md:p-8 space-y-5">
+              <ul className="space-y-4 md:space-y-5">
                 {mri.primaryImprovementOpportunities.map((opp, i) => (
                   <li key={i} className="flex items-start gap-4">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 shrink-0" />
-                    <span className="text-foreground/90 text-lg">{opp}</span>
+                    <span className="text-foreground/90 text-base md:text-lg">{opp}</span>
                   </li>
                 ))}
               </ul>
@@ -111,30 +111,51 @@ Please provide a short practice exercise to help me work on these specific impro
       </div>
 
       {/* SECTION 4: DETAILED EVIDENCE */}
-      <div className="space-y-8 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 fill-mode-both">
-        <div className="space-y-2">
+      <div className="space-y-6 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 fill-mode-both">
+        <div className="space-y-1">
           <h3 className="text-2xl font-serif text-foreground flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 text-warning" /> Mark Loss Evidence
           </h3>
-          <p className="text-muted-foreground text-lg">Select a question to reveal the diagnostic reasoning.</p>
+          <p className="text-muted-foreground text-base">Evidence-driven diagnostic reasoning for evaluated questions.</p>
         </div>
-        <div className="grid gap-6">
-          {mri.questions.filter(q => q.issues && q.issues.length > 0).map((q, i) => (
-            <Card key={i} className="overflow-hidden shadow-sm border-border/40 hover:border-primary/20 transition-colors">
-              <div className="bg-muted/30 px-6 py-4 border-b border-border/40 flex justify-between items-center">
-                <span className="font-semibold text-foreground text-lg">Question {q.questionNumber}</span>
-                <Badge variant="outline" className="bg-white/50 text-sm font-medium">Marks: {q.teacherMarksDetected ?? 'N/A'}</Badge>
-              </div>
-              <CardContent className="p-0">
-                <div className="divide-y divide-border/40">
-                  {q.issues?.map((issue, j) => (
-                    <ExpandableIssue key={j} issue={issue} />
-                  ))}
+        
+        {mri.questions.filter(q => q.issues && q.issues.length > 0).length === 0 ? (
+          <Card className="border-border/40 bg-emerald-500/5 shadow-sm p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-500/20">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xl font-serif font-bold text-foreground">
+                No measurable mark deductions were detected.
+              </h4>
+              <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
+                Your answer sheet demonstrated strong mastery with no significant loss of marks across evaluated questions.
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="grid gap-6">
+            {mri.questions.filter(q => q.issues && q.issues.length > 0).map((q, i) => (
+              <Card key={i} className="overflow-hidden shadow-sm border-border/40 hover:border-primary/20 transition-colors">
+                <div className="bg-muted/30 px-6 py-4 border-b border-border/40 flex justify-between items-center">
+                  <span className="font-semibold text-foreground text-lg flex items-center gap-2">
+                    Question {q.questionNumber}
+                  </span>
+                  <Badge variant="outline" className="bg-background/80 text-sm font-medium border-primary/20 text-primary">
+                    Marks Detected: {q.teacherMarksDetected ?? 'Evaluated'}
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-border/40">
+                    {q.issues?.map((issue, j) => (
+                      <ExpandableIssue key={j} issue={{ ...issue, transcription: q.transcription }} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* SECTION 5: RECOMMENDED ACTION */}
