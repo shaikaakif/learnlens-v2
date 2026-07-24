@@ -263,34 +263,34 @@ export default function AnalyzePage() {
             )
           )}
 
-          {/* Upload Queue / Draft Upload Preservation */}
+          {/* Upload Queue / Minimal Draft Bar */}
           {files.length > 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-              <div className="flex justify-between items-center bg-primary/5 p-3 rounded-xl border border-primary/20">
-                <div>
-                  <h3 className="font-bold text-foreground tracking-wide text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Draft Upload Preserved ({files.length} {files.length === 1 ? 'Page' : 'Pages'})
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Your uploaded pages are saved in draft mode. Click Resume Analysis to start.</p>
+              <div className="flex items-center justify-between gap-2 bg-primary/5 px-3.5 py-2.5 rounded-xl border border-primary/20">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="font-bold text-foreground text-sm truncate">
+                    Draft ({files.length} {files.length === 1 ? 'Page' : 'Pages'})
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-full h-8 px-3 gap-1.5 border-primary/30 text-primary hover:bg-primary/10 font-semibold"
+                    className="rounded-full h-7 px-2.5 gap-1 border-primary/30 text-primary hover:bg-primary/10 font-semibold text-xs"
                     onClick={() => isMobile ? setIsSourceSheetOpen(true) : triggerDesktopUpload()}
                   >
-                    <Plus className="w-4 h-4" /> Add Page
+                    <Plus className="w-3.5 h-3.5" /> Add
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="rounded-full h-8 px-2.5 text-destructive hover:bg-destructive/10 text-xs"
+                    className="rounded-full h-7 px-2 text-destructive hover:bg-destructive/10 text-xs"
                     onClick={() => setFiles([])}
-                    title="Remove All Draft Pages"
+                    title="Clear Draft"
                   >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
