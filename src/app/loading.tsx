@@ -7,7 +7,7 @@ export default function GlobalLoading() {
         <div className="absolute inset-0 border-4 border-primary/20 rounded-full animate-ping opacity-30 duration-1000"></div>
         <Loader2 className="w-8 h-8 animate-spin text-primary relative z-10" />
       </div>
-      <p className="text-muted-foreground font-medium animate-pulse">Loading LearnLens...</p>
+      <p className="text-muted-foreground font-medium animate-pulse">Loading LearnLens...Please wait..😊</p>
     </div>
   );
 }
