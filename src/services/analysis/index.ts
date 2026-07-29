@@ -1,11 +1,14 @@
 import { LearningMRI } from '@/types';
 
 export class AnalysisService {
-  async analyzeAssessment(files: File[], signal?: AbortSignal): Promise<string> {
+  async analyzeAssessment(files: File[], signal?: AbortSignal, examId?: string | null): Promise<string> {
     // REAL AI MODE via backend API route
     const formData = new FormData();
     // Hardcode a placeholder assessmentId temporarily to not break Gemini provider yet
     formData.append('assessmentId', 'generic');
+    if (examId) {
+      formData.append('examId', examId);
+    }
     files.forEach(f => formData.append('files', f));
 
     const response = await fetch('/api/analyze', {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UploadCloud, FileImage, AlertCircle, X, Trash2, BrainCircuit, Camera as CameraIcon, Plus, FileQuestion, FolderOpen } from 'lucide-react';
@@ -14,6 +14,8 @@ type ProcessState = 'idle' | 'uploading' | 'analyzing' | 'validating' | 'complet
 
 export default function AnalyzePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const examId = searchParams.get('examId');
   
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<{file: File, url: string}[]>([]);
@@ -112,7 +114,7 @@ export default function AnalyzePage() {
       setProcessState('uploading');
       setTimeout(() => setProcessState('analyzing'), 1500);
 
-      const analysisId = await analysisService.analyzeAssessment(files, controller.signal);
+      const analysisId = await analysisService.analyzeAssessment(files, controller.signal, examId);
 
       setProcessState('validating');
       await new Promise(r => setTimeout(r, 800));

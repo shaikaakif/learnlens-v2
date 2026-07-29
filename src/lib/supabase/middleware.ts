@@ -64,11 +64,28 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Redirect from root or login to dashboard if already logged in
-  if ((request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/student/login') && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/student/dashboard'
-    return createRedirectResponse(url)
+  // Protect teacher routes
+  if (request.nextUrl.pathname.startsWith('/teacher')) {
+    const isTeacherLogin = request.nextUrl.pathname === '/teacher/login'
+
+    if (!user) {
+      if (!isTeacherLogin) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/teacher/login'
+        return createRedirectResponse(url)
+      }
+    } else if (isTeacherLogin) {
+      // Check if teacher profile exists
+      const { data: teacherProfile } = await supabase
+        .from('teacher_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const url = request.nextUrl.clone()
+      url.pathname = teacherProfile ? '/teacher/dashboard' : '/teacher/onboarding'
+      return createRedirectResponse(url)
+    }
   }
 
   return supabaseResponse

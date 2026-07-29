@@ -4,13 +4,13 @@ import { useActionState, useState } from 'react'
 import { login, signup, forgotPassword } from '@/app/actions/student-auth'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, BookOpen, CheckCircle2, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, BookOpen, CheckCircle2, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react'
 import Link from 'next/link'
-
 import { AmbientAuroraBackground } from '@/components/ui/ambient-aurora-background'
+import { triggerHaptic } from '@/lib/haptics'
 
 export default function StudentLogin() {
-  const [viewState, setViewState] = useState<'signin' | 'signup' | 'forgot'>('signin')
+  const [viewState, setViewState] = useState<'signin' | 'signup' | 'forgot'>('signup')
   const [showPassword, setShowPassword] = useState(false)
   
   const [loginState, loginAction, isLoginPending] = useActionState(async (state: any, formData: FormData) => {
@@ -29,25 +29,30 @@ export default function StudentLogin() {
   const activeAction = viewState === 'signup' ? signupAction : viewState === 'forgot' ? forgotAction : loginAction
   const state = viewState === 'signup' ? signupState : viewState === 'forgot' ? forgotState : loginState
 
+  const toggleView = (nextState: 'signin' | 'signup' | 'forgot') => {
+    triggerHaptic('light');
+    setViewState(nextState);
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden font-sans">
       
       {/* Living Aurora Atmospheric Background */}
       <AmbientAuroraBackground variant="auth" />
 
-      <Card className="w-full max-w-md shadow-2xl shadow-primary/5 border-primary/25 bg-white/75 backdrop-blur-2xl relative z-10">
+      <Card className="w-full max-w-md shadow-2xl shadow-primary/5 border-primary/25 bg-white/95 backdrop-blur-2xl relative z-10 rounded-3xl overflow-hidden">
         <CardHeader className="text-center space-y-4 pt-8">
           <div className="relative mx-auto w-16 h-16 bg-primary/15 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20">
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full -z-10" />
             <BookOpen className="w-8 h-8 relative z-10" />
           </div>
           <div>
-            <CardTitle className="text-3xl font-serif text-foreground">
-              {viewState === 'signup' ? 'Join LearnLens' : viewState === 'forgot' ? 'Reset Password' : 'Welcome Back'}
+            <CardTitle className="text-3xl font-serif font-bold text-foreground tracking-tight">
+              {viewState === 'signup' ? 'Create Student Account' : viewState === 'forgot' ? 'Reset Password' : 'Welcome Back'}
             </CardTitle>
-            <CardDescription className="text-base mt-2">
+            <CardDescription className="text-sm mt-1 text-muted-foreground">
               {viewState === 'signup' 
-                ? 'Create your isolated student workspace.' 
+                ? 'Register to start receiving Learning MRIs & class assessments.' 
                 : viewState === 'forgot' 
                   ? "We'll send you a secure link to reset it."
                   : 'Access your personal learning journey.'}
@@ -55,27 +60,27 @@ export default function StudentLogin() {
           </div>
         </CardHeader>
         
-        <CardContent className="px-8 pb-8">
+        <CardContent className="px-6 md:px-8 pb-6">
           {(state as any)?.success ? (
             <div className="space-y-6 text-center animate-in fade-in zoom-in-95">
-              <div className="mx-auto w-16 h-16 bg-success/15 rounded-full flex items-center justify-center text-success">
+              <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-primary">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold text-foreground">
+                <h3 className="text-xl font-serif font-bold text-foreground">
                   {viewState === 'forgot' ? 'Check your inbox' : 'Verification Link Sent'}
                 </h3>
-                <p className="text-muted-foreground">{(state as any).message}</p>
+                <p className="text-sm text-muted-foreground">{(state as any).message}</p>
               </div>
-              <Button onClick={() => setViewState('signin')} variant="outline" className="w-full">
+              <Button onClick={() => toggleView('signin')} variant="outline" className="w-full rounded-xl">
                 Return to Sign In
               </Button>
             </div>
           ) : (
-            <form action={activeAction} className="space-y-5 animate-in fade-in slide-in-from-bottom-4">
+            <form action={activeAction} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
               
               <div className="space-y-2 text-left">
-                <label htmlFor="email" className="text-sm font-semibold text-foreground tracking-wide">
+                <label htmlFor="email" className="text-xs font-mono uppercase tracking-wider font-semibold text-muted-foreground">
                   Email Address
                 </label>
                 <input
@@ -83,7 +88,7 @@ export default function StudentLogin() {
                   name="email"
                   type="email"
                   required
-                  className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/70"
+                  className="flex h-12 w-full rounded-xl border border-border/80 bg-background/60 px-4 py-2 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/60 transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 font-medium"
                   placeholder="student@example.com"
                 />
               </div>
@@ -91,11 +96,11 @@ export default function StudentLogin() {
               {viewState !== 'forgot' && (
                 <div className="space-y-2 text-left relative">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="password" className="text-sm font-semibold text-foreground tracking-wide">
+                    <label htmlFor="password" className="text-xs font-mono uppercase tracking-wider font-semibold text-muted-foreground">
                       Password
                     </label>
                     {viewState === 'signin' && (
-                      <button type="button" onClick={() => setViewState('forgot')} className="text-xs text-primary hover:underline font-medium">
+                      <button type="button" onClick={() => toggleView('forgot')} className="text-xs text-primary hover:underline font-bold">
                         Forgot password?
                       </button>
                     )}
@@ -106,7 +111,8 @@ export default function StudentLogin() {
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       required
-                      className="flex h-12 w-full rounded-xl border border-border/60 bg-background/50 px-4 py-2 pr-12 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/70"
+                      minLength={6}
+                      className="flex h-12 w-full rounded-xl border border-border/80 bg-background/60 px-4 py-2 pr-12 text-sm aurora-input focus-visible:outline-none placeholder:text-muted-foreground/60 transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 font-medium"
                       placeholder="••••••••"
                     />
                     <button
@@ -122,37 +128,51 @@ export default function StudentLogin() {
               )}
 
               {state?.error && (
-                <div className="flex items-start gap-3 text-destructive bg-destructive/10 p-4 rounded-xl text-sm border border-destructive/20 animate-in fade-in slide-in-from-top-2">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                  <p className="leading-relaxed">{state.error}</p>
+                <div className="p-3.5 text-xs md:text-sm text-red-800 bg-red-50 rounded-2xl border border-red-200 text-center flex items-center justify-center gap-2 animate-in fade-in zoom-in-95 font-medium shadow-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{state.error}</span>
                 </div>
               )}
 
-              <Button type="submit" size="lg" className="w-full h-12 rounded-xl text-base font-semibold tracking-wide shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all group" disabled={pending}>
+              <Button 
+                type="submit" 
+                size="lg" 
+                disabled={pending}
+                onClick={() => triggerHaptic('medium')}
+                className="w-full h-12 rounded-xl text-sm font-semibold tracking-wide bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 mt-2" 
+              >
                 {pending 
                   ? (viewState === 'signup' ? 'Creating Account...' : viewState === 'forgot' ? 'Sending...' : 'Signing In...') 
-                  : (viewState === 'signup' ? 'Create Account' : viewState === 'forgot' ? 'Reset Password' : 'Sign In')}
-                {!pending && <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />}
+                  : (viewState === 'signup' ? 'Create Student Account' : viewState === 'forgot' ? 'Reset Password' : 'Sign In')}
+                {!pending && <ArrowRight className="w-4 h-4" />}
               </Button>
             </form>
           )}
         </CardContent>
         
         {!(state as any)?.success && (
-          <CardFooter className="justify-center border-t border-border/40 py-6 bg-muted/30">
-            <button 
-              type="button"
-              onClick={() => setViewState(viewState === 'signup' ? 'signin' : 'signup')} 
-              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              {viewState === 'signup' ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
+          <CardFooter className="flex flex-col gap-3 items-center justify-center border-t border-border/40 py-4 bg-muted/20">
+            <div className="text-center text-xs text-muted-foreground flex flex-col sm:flex-row items-center gap-1.5">
+              <span>{viewState === 'signup' ? 'Already have a student account?' : "Don't have a student account?"}</span>
+              <button 
+                type="button"
+                onClick={() => toggleView(viewState === 'signup' ? 'signin' : 'signup')} 
+                className="inline-flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-all px-3 py-1 rounded-full bg-primary/10 border border-primary/30 shadow-sm animate-pulse hover:animate-none hover:scale-105 active:scale-95"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>{viewState === 'signup' ? 'Sign in instead' : 'Create account'}</span>
+              </button>
+            </div>
           </CardFooter>
         )}
       </Card>
       
       {/* Return to home */}
-      <Link href="/" className="absolute top-6 left-6 text-sm text-muted-foreground hover:text-foreground font-medium transition-colors bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-border/50 shadow-sm z-20">
+      <Link 
+        href="/" 
+        onClick={() => triggerHaptic('light')}
+        className="absolute top-6 left-6 text-xs md:text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors bg-white/90 border border-border/80 px-4 py-2 rounded-full backdrop-blur-xl shadow-sm z-20"
+      >
         ← Home
       </Link>
     </div>

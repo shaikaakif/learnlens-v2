@@ -81,6 +81,22 @@ export async function POST(req: NextRequest) {
       eventType: 'analysis_started',
       metadata: { assessmentId, fileCount: files.length }
     });
+
+    // Optional Exam Link Verification (TP-V1.8)
+    let validExamId: string | null = null;
+    const rawExamId = formData.get('examId') as string | null;
+    if (rawExamId) {
+      const { data: examCheck } = await supabase
+        .from('exams')
+        .select('id, status')
+        .eq('id', rawExamId)
+        .eq('status', 'PUBLISHED')
+        .maybeSingle();
+
+      if (examCheck) {
+        validExamId = examCheck.id;
+      }
+    }
     
     const mri = await provider.analyzeAssessment({
       assessmentId,
@@ -93,7 +109,8 @@ export async function POST(req: NextRequest) {
     // Save to Supabase persistent store
     await db.saveAnalysis(mri, {
       model_used: 'gemini-flash-latest',
-      processing_duration_ms: duration
+      processing_duration_ms: duration,
+      exam_id: validExamId
     });
 
     logServerEvent({

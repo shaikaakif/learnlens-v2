@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export interface AnalysisMetadata {
   model_used: string;
   processing_duration_ms: number;
+  exam_id?: string | null;
 }
 
 export const db = {
@@ -60,20 +61,26 @@ export const db = {
     // We expect mri.subjectDetected to be populated. If not, fallback.
     const subjectDetected = (mri as any).subjectDetected || 'Unknown';
     
+    const insertPayload: any = {
+      id: mri.id,
+      student_id: user.id, // For legacy column
+      user_id: user.id,    // For new RLS column
+      status: 'completed',
+      subject_detected: subjectDetected,
+      score_obtained: mri.score?.obtained?.toString() || (mri.officialScore ? mri.officialScore.split('/')[0] : null),
+      score_total: mri.score?.total?.toString() || (mri.officialScore ? mri.officialScore.split('/')[1] : null),
+      model_used: metadata.model_used,
+      processing_duration_ms: metadata.processing_duration_ms,
+      analysis_data: mri
+    };
+
+    if (metadata.exam_id) {
+      insertPayload.exam_id = metadata.exam_id;
+    }
+
     const { error } = await supabase
       .from('analyses')
-      .insert({
-        id: mri.id,
-        student_id: user.id, // For legacy column
-        user_id: user.id,    // For new RLS column
-        status: 'completed',
-        subject_detected: subjectDetected,
-        score_obtained: mri.score?.obtained?.toString() || (mri.officialScore ? mri.officialScore.split('/')[0] : null),
-        score_total: mri.score?.total?.toString() || (mri.officialScore ? mri.officialScore.split('/')[1] : null),
-        model_used: metadata.model_used,
-        processing_duration_ms: metadata.processing_duration_ms,
-        analysis_data: mri
-      });
+      .insert(insertPayload);
 
     if (error) {
       console.error('Supabase insert error:', error);

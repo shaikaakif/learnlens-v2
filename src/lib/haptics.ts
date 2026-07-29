@@ -30,3 +30,9 @@ export function vibrateError() {
     }
   }
 }
+
+export function triggerHaptic(type: 'light' | 'medium' | 'success' | 'error' = 'light') {
+  if (type === 'success') vibrateSuccess();
+  else if (type === 'error') vibrateError();
+  else vibrateLight();
+}
