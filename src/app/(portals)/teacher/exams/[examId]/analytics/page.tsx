@@ -89,13 +89,13 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
   const improvementsList = Array.from(improvementsSet).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20 overflow-x-hidden">
       {/* Navigation Header */}
-      <header className="bg-white border-b border-border/80 px-4 md:px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30">
+      <header className="bg-white/95 border-b border-border/80 px-4 md:px-8 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-30 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <Link
             href={`/teacher/exams/${examId}`}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-white border border-border/80 px-3.5 py-1.5 rounded-full shadow-sm"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors bg-white border border-border/80 px-3.5 py-2 rounded-full shadow-sm min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Exam
           </Link>
@@ -113,49 +113,49 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-6 md:space-y-8">
         {/* Banner */}
-        <div className="bg-white/90 p-6 md:p-8 rounded-3xl border border-primary/20 shadow-sm space-y-2">
+        <div className="bg-white/90 p-5 md:p-8 rounded-3xl border border-primary/20 shadow-sm space-y-2">
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-primary font-bold">
             <BarChart3 className="w-4 h-4" />
             <span>Class Performance Analytics</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-foreground">{exam.title}</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl md:text-3xl font-serif font-bold text-foreground">{exam.title}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             {exam.subject} • {exam.class_level} ({exam.section || 'A'})
           </p>
         </div>
 
-        {/* Real Overview Stats */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="bg-white border-border/80 shadow-sm rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Submissions</CardTitle>
-              <Users className="w-4 h-4 text-primary" />
+        {/* Real Overview Stats (1-Column on Mobile, Grid on Desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-4 md:p-6">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-0 mb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Submissions</CardTitle>
+              <Users className="w-4 h-4 text-primary shrink-0" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="text-2xl font-bold font-serif">{submissionCount}</div>
               <p className="text-xs text-muted-foreground mt-1">Student answer sheets analyzed</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-border/80 shadow-sm rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Class Average Score</CardTitle>
-              <Award className="w-4 h-4 text-primary" />
+          <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-4 md:p-6">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-0 mb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Class Average Score</CardTitle>
+              <Award className="w-4 h-4 text-primary shrink-0" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="text-2xl font-bold font-serif">{avgObtained}</div>
               <p className="text-xs text-muted-foreground mt-1">{avgPct}% overall class average</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-border/80 shadow-sm rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Score Range</CardTitle>
-              <TrendingUp className="w-4 h-4 text-primary" />
+          <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-4 md:p-6 sm:col-span-2 md:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-0 mb-2">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Score Range</CardTitle>
+              <TrendingUp className="w-4 h-4 text-primary shrink-0" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="text-2xl font-bold font-serif">
                 {submissionCount > 0 ? `${minPct.toFixed(0)}% – ${maxPct.toFixed(0)}%` : '0%'}
               </div>
@@ -166,10 +166,10 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
 
         {/* Learning MRI Evidence Breakdown */}
         {submissionCount > 0 && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-serif font-bold text-foreground">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs md:text-sm font-serif font-bold text-foreground">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Class Concept Strengths</span>
               </div>
               {strengthsList.length > 0 ? (
@@ -177,7 +177,7 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
                   {strengthsList.map((s, i) => (
                     <li key={i} className="flex items-start gap-2 bg-emerald-50 text-emerald-900 p-2.5 rounded-xl border border-emerald-200/60 font-medium">
                       <span className="text-emerald-600 font-bold">✓</span>
-                      <span>{s}</span>
+                      <span className="leading-snug">{s}</span>
                     </li>
                   ))}
                 </ul>
@@ -186,9 +186,9 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
               )}
             </Card>
 
-            <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-serif font-bold text-foreground">
-                <Target className="w-4 h-4 text-amber-600" />
+            <Card className="bg-white border-border/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-xs md:text-sm font-serif font-bold text-foreground">
+                <Target className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>Key Improvement Opportunities</span>
               </div>
               {improvementsList.length > 0 ? (
@@ -196,7 +196,7 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
                   {improvementsList.map((imp, i) => (
                     <li key={i} className="flex items-start gap-2 bg-amber-50 text-amber-900 p-2.5 rounded-xl border border-amber-200/60 font-medium">
                       <span className="text-amber-600 font-bold">!</span>
-                      <span>{imp}</span>
+                      <span className="leading-snug">{imp}</span>
                     </li>
                   ))}
                 </ul>
@@ -207,18 +207,18 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
           </div>
         )}
 
-        {/* Submissions List / Intentional Empty State */}
+        {/* Submissions List / Mobile Responsive Submission Cards */}
         <div className="space-y-4">
-          <h2 className="text-xl font-serif font-bold text-foreground">Student Submissions</h2>
+          <h2 className="text-lg md:text-xl font-serif font-bold text-foreground">Student Submissions</h2>
 
           {submissionCount === 0 ? (
-            <Card className="border-dashed border-2 border-border/80 bg-white/50 p-8 text-center rounded-3xl space-y-3">
+            <Card className="border-dashed border-2 border-border/80 bg-white/50 p-6 md:p-8 text-center rounded-3xl space-y-3">
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto">
                 <FileText className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-serif font-bold text-foreground">No student submissions yet</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                <h3 className="text-base md:text-lg font-serif font-bold text-foreground">No student submissions yet</h3>
+                <p className="text-xs md:text-sm text-muted-foreground max-w-md mx-auto">
                   Student insights will appear after students analyze their answer sheets for this examination.
                 </p>
               </div>
@@ -228,31 +228,31 @@ export default async function TeacherExamAnalytics({ params }: { params: Promise
               {submissions.map((sub) => {
                 const studentName = studentMap.get(sub.user_id) || 'Student';
                 return (
-                  <Card key={sub.id} className="bg-white border-border/80 shadow-sm p-4 flex items-center justify-between rounded-2xl hover:border-primary/40 transition-all">
+                  <Card key={sub.id} className="bg-white border-border/80 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl hover:border-primary/40 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center text-primary font-bold text-sm">
+                      <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center text-primary font-bold text-sm shrink-0">
                         {studentName.charAt(0)}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{studentName}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs md:text-sm font-semibold text-foreground truncate">{studentName}</p>
+                        <p className="text-[11px] text-muted-foreground">
                           Submitted on {new Date(sub.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <span className="text-sm font-bold font-serif text-foreground">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                      <div className="text-left sm:text-right">
+                        <span className="text-xs md:text-sm font-bold font-serif text-foreground">
                           {sub.score_obtained || 0} / {sub.score_total || 100}
                         </span>
-                        <span className="text-xs text-muted-foreground block font-mono">
+                        <span className="text-[11px] text-muted-foreground block font-mono">
                           {((parseFloat(sub.score_obtained || 0) / parseFloat(sub.score_total || 100)) * 100).toFixed(0)}%
                         </span>
                       </div>
 
-                      <Link href={`/student/learning-mri/${sub.id}`}>
-                        <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold">
+                      <Link href={`/student/learning-mri/${sub.id}`} className="shrink-0">
+                        <Button variant="outline" size="sm" className="rounded-xl text-xs font-semibold h-10 min-h-[44px] px-3.5">
                           View MRI →
                         </Button>
                       </Link>
